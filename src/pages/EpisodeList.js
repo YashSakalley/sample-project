@@ -11,6 +11,8 @@ import Button from 'react-bootstrap/Button'
 import Pagination from 'react-bootstrap/Pagination'
 import FormControl from 'react-bootstrap/FormControl'
 import InputGroup from 'react-bootstrap/InputGroup'
+import Navbar from 'react-bootstrap/Navbar'
+import Nav from 'react-bootstrap/Nav'
 import Select from 'react-select'
 
 import Header from '../components/Layout/Header'
@@ -57,6 +59,7 @@ class EpisodeList extends Component {
                 console.log(res);
                 this.setState({ loading: false })
                 this.props.onSetEpisodes(res.data.results)
+                window.scrollTo(0, 0)
             })
             .catch(err => {
                 console.log(err);
@@ -72,11 +75,42 @@ class EpisodeList extends Component {
                 console.log(res);
                 this.setState({ loading: false })
                 this.props.onSetEpisodes(res.data.results)
+                window.scrollTo(0, 0)
             })
             .catch(err => {
                 console.log(err);
             })
         this.setState({ page_num: this.state.page_num - 1 })
+    }
+
+    onFirstPageClicked = () => {
+        this.setState({ loading: true })
+        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?page=${1}`)
+            .then(res => {
+                console.log(res);
+                this.setState({ loading: false })
+                this.props.onSetEpisodes(res.data.results)
+                window.scrollTo(0, 0)
+            })
+            .catch(err => {
+                console.log(err);
+            })
+        this.setState({ page_num: 1 })
+    }
+
+    onLastPageClicked = () => {
+        this.setState({ loading: true })
+        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?page=${this.state.max_page}`)
+            .then(res => {
+                console.log(res);
+                this.setState({ loading: false })
+                this.props.onSetEpisodes(res.data.results)
+                window.scrollTo(0, 0)
+            })
+            .catch(err => {
+                console.log(err);
+            })
+        this.setState({ page_num: this.state.max_page })
     }
 
     onNameChange = (e) => {
@@ -139,10 +173,17 @@ class EpisodeList extends Component {
         return (
             <div>
                 <Header />
+                <Navbar bg="light" variant="light">
+                    <Navbar.Brand href="#home">Browse</Navbar.Brand>
+                    <Nav className="mr-auto">
+                        <Nav.Link href="/" active>Episodes</Nav.Link>
+                        <Nav.Link href="/character">Characters</Nav.Link>
+                    </Nav>
+                </Navbar>
                 <Container>
                     <Row>
                         <Col md={4}>
-                            <h3>Filter</h3>
+                            <h3 className="mt-2">Filter</h3>
                             <InputGroup className="mb-3">
                                 <InputGroup.Prepend>
                                     <InputGroup.Text id="basic-addon1">#</InputGroup.Text>
@@ -185,7 +226,6 @@ class EpisodeList extends Component {
                         </Col>
                         <Col md={8}>
                             <h1 className="mb-1 mt-2">Episodes</h1>
-                            <Link to="/character">Browse Characters</Link>
 
                             <ListGroup className="mt-4">
                                 {
@@ -204,10 +244,60 @@ class EpisodeList extends Component {
                             </ListGroup>
 
                             <Pagination className="mt-2 mb-4 d-flex justify-content-center">
-                                <Pagination.Prev disabled={this.state.page_num === 1} onClick={this.onPrevPageClicked} />
-                                <Pagination.Item>{this.state.page_num}</Pagination.Item>
-                                <Pagination.Next disabled={this.state.page_num === this.state.max_page} onClick={this.onNextPageClicked} />
                                 {this.state.loading && <Pagination.Item> Please Wait</Pagination.Item>}
+                            </Pagination>
+
+                            <Pagination className="mt-2 mb-4 d-flex justify-content-center">
+                                {
+                                    this.state.page_num - 1 > 0
+                                        ? <>
+                                            <Pagination.First disabled={this.state.page_num === 1} onClick={this.onFirstPageClicked} />
+                                            <Pagination.Prev disabled={this.state.page_num === 1} onClick={this.onPrevPageClicked} />
+
+                                            {
+                                                this.state.page_num === 2
+                                                    ? null
+                                                    : <>
+                                                        <Pagination.Item disabled={this.state.page_num === 1} onClick={this.onFirstPageClicked}>{1}</Pagination.Item>
+                                                        {
+                                                            this.state.page_num === 3
+                                                                ? null
+                                                                :
+                                                                <Pagination.Ellipsis />
+                                                        }
+                                                    </>
+                                            }
+                                            <Pagination.Item onClick={this.onPrevPageClicked} >{this.state.page_num - 1}</Pagination.Item>
+                                        </>
+                                        : null
+                                }
+
+                                <Pagination.Item active>{this.state.page_num}</Pagination.Item>
+
+                                {
+                                    this.state.page_num < this.state.max_page
+                                        ?
+                                        <>
+                                            <Pagination.Item onClick={this.onNextPageClicked}>{this.state.page_num + 1}</Pagination.Item>
+                                            {
+                                                this.state.page_num === this.state.max_page - 1
+                                                    ? null
+                                                    : <>
+                                                        {
+                                                            this.state.page_num === this.state.max_page - 2
+                                                                ? null
+                                                                :
+                                                                <Pagination.Ellipsis />
+                                                        }
+                                                        <Pagination.Item onClick={this.onLastPageClicked}>{this.state.max_page}</Pagination.Item>
+                                                    </>
+                                            }
+
+                                            <Pagination.Next disabled={this.state.page_num === this.state.max_page} onClick={this.onNextPageClicked} />
+                                            <Pagination.Last disabled={this.state.page_num === this.state.max_page} onClick={this.onLastPageClicked} />
+                                        </> : null
+                                }
+
                             </Pagination>
                         </Col>
                     </Row>
