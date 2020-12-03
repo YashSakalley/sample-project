@@ -137,7 +137,7 @@ export default class Home extends Component {
                 <Container>
                     <Row>
                         <Col md={4}>
-                            <h3>Filter</h3>
+                            <h3 className="mt-2">Filter</h3>
                             <InputGroup className="mb-3">
                                 <InputGroup.Prepend>
                                     <InputGroup.Text id="basic-addon1">#</InputGroup.Text>
@@ -179,7 +179,7 @@ export default class Home extends Component {
                                 options={sortOptions} />
                         </Col>
                         <Col md={8}>
-                            <h1 className="mb-4 mt-2">Episodes</h1>
+                            <h1 className="mb-4 mt-4">Episodes</h1>
                             <Link to="/character">Browse Characters</Link>
                             <Pagination className="mt-2 mb-4 d-flex justify-content-center">
                                 <Pagination.Prev disabled={this.state.page_num === 1} onClick={this.onPrevPageClicked} />

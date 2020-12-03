@@ -162,7 +162,7 @@ export default class Home extends Component {
                 <Container>
                     <Row>
                         <Col md={4}>
-                            <h3>Filter</h3>
+                            <h3 className="mt-2">Filter</h3>
                             <InputGroup className="mb-3">
 
                                 <FormControl
@@ -225,7 +225,7 @@ export default class Home extends Component {
                                 options={sortOptions} />
                         </Col>
                         <Col md={7}>
-                            <h1 className="mb-4 mt-2">Characters</h1>
+                            <h1 className="mb-4 mt-4">Characters</h1>
                             <Link to="/">Browse Episodes</Link>
                             <Pagination className="mt-2 mb-4 d-flex justify-content-center">
                                 <Pagination.Prev disabled={this.state.page_num === 1} onClick={this.onPrevPageClicked} />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Breadcrumb, Col, Container, Image, Row } from 'react-bootstrap'
+import { Badge, Breadcrumb, Col, Container, Image, Row } from 'react-bootstrap'
 import { useParams } from 'react-router-dom'
 
 import Axios from 'axios'
@@ -40,12 +40,28 @@ export default function Character() {
             statusColor = 'orange'
     }
 
+    let speciesColor = 'dark'
+    if (character.species === 'Human')
+        speciesColor = 'info'
+
+    let genderColor = 'info';
+    switch (character.gender) {
+        case 'Male':
+            genderColor = 'primary'
+            break
+        case 'Female':
+            genderColor = 'secondary'
+            break
+        default:
+            genderColor = 'info'
+    }
+
     return (
         <div className={styles.background}>
             <Container className={styles.character}>
                 <Row>
                     <Col md={5} className="p-0">
-                        <Image src={character.image} fluid rounded />
+                        <Image src={character.image} style={{ height: '100%' }} fluid rounded />
                     </Col>
                     <Col md={7} className="pr-0">
                         <Breadcrumb>
@@ -62,14 +78,15 @@ export default function Character() {
 
                                 backgroundColor: statusColor
                             }}></div> {character.status.toUpperCase()} </div>
+
                         <div className="d-flex align-items-center m-1">
-                            Gender: {character.gender}
+                            Gender: <Badge className="m-1 mt-2" variant={genderColor}> {character.gender} </Badge>
+                        </div>
+                        <div className="d-flex align-items-center m-1">
+                            Species: <Badge className="m-1 mt-2" variant={speciesColor}> {character.species} </Badge>
                         </div>
                         <div className="d-flex align-items-center m-1">
                             Location: {character.location.name}
-                        </div>
-                        <div className="d-flex align-items-center m-1">
-                            Species: {character.species}
                         </div>
                         <div className="d-flex align-items-center m-1">
                             Origin: {character.origin.name}
