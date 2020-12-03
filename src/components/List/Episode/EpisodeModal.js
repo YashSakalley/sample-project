@@ -10,10 +10,12 @@ import Axios from 'axios'
 export default class EpisodeModal extends Component {
     state = {
         showCharacters: false,
-        characters: []
+        characters: [],
+        loading: false
     }
 
     getCharacters = async (characters) => {
+        this.setState({ loading: true })
         let newChars = []
         let wait = characters.length;
         await characters.forEach(character => {
@@ -23,7 +25,7 @@ export default class EpisodeModal extends Component {
                     newChars.push({ id: data.id, img: data.image, name: data.name })
                     wait--;
                     if (wait === 0) {
-                        this.setState({ characters: newChars })
+                        this.setState({ characters: newChars, loading: false })
                     }
                 })
                 .catch(err => {
@@ -35,8 +37,6 @@ export default class EpisodeModal extends Component {
     onCloseModal = () => {
         this.props.onHide(); this.setState({ characters: [] })
     }
-
-
 
     render() {
         let { episode } = this.props
@@ -58,18 +58,24 @@ export default class EpisodeModal extends Component {
                     <strong>Aired on:</strong> {episode.air_date} <br />
                     <strong>Episode:</strong> {episode.episode} <br />
 
-                    <div className="d-flex overflow-auto">
+                    <div className="d-flex overflow-auto align-items-center">
                         {
                             this.state.characters.length > 0
                                 ?
                                 this.state.characters.map((character, id) => (
                                     <Link to={`/character/${character.id}`} key={id}>
-
-                                        <Image className='m-1' style={{ width: '45px' }} src={character.img} alt={character.name} roundedCircle />
-
+                                        <Image className='m-2 mt-4' style={{ width: '45px' }} src={character.img} alt={character.name} roundedCircle />
                                     </Link>
                                 ))
-                                : <Button variant="info" size="sm" className="mb-2 mt-4" onClick={() => this.getCharacters(episode.characters)}>Show Characters</Button>
+                                : <>
+                                    {
+                                        this.state.loading
+                                            ?
+                                            <div className="m-2">Loading</div>
+                                            : null
+                                    }
+                                    <Button variant="info" size="sm" className="mb-2 mt-4" onClick={() => this.getCharacters(episode.characters)}>Show Characters</Button>
+                                </>
                         }
                     </div>
                 </Modal.Body>

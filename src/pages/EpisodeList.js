@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import Axios from 'axios'
+import Select from 'react-select'
 
 import Container from 'react-bootstrap/Container'
 import Col from 'react-bootstrap/Col'
@@ -12,7 +13,6 @@ import FormControl from 'react-bootstrap/FormControl'
 import InputGroup from 'react-bootstrap/InputGroup'
 import Navbar from 'react-bootstrap/Navbar'
 import Nav from 'react-bootstrap/Nav'
-import Select from 'react-select'
 
 import Header from '../components/Layout/Header'
 import EpisodeModal from '../components/List/Episode/EpisodeModal'
@@ -145,10 +145,10 @@ class EpisodeList extends Component {
             })
     }
 
-    onSortChanged = (e) => {
+    onSortChanged = async (e) => {
         let eps = this.props.episodes;
-        eps.sort(this.GetSortOrder(e.value))
-        console.log(eps);
+        await eps.sort(this.GetSortOrder(e.value))
+        console.log('sort');
         this.props.onSetEpisodes(eps)
     }
 

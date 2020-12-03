@@ -27,7 +27,7 @@ const reducer = (state = initialState, action) => {
                 episodes: eps
             }
         case action_types.SET_EPISODES:
-            console.log(action.payload.episodes);
+            console.log('setting');
             return {
                 episodes: action.payload.episodes
             }
