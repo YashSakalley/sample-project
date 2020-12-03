@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
 import { connect } from 'react-redux'
 import Axios from 'axios'
 
@@ -15,50 +14,35 @@ import Navbar from 'react-bootstrap/Navbar'
 import Nav from 'react-bootstrap/Nav'
 import Select from 'react-select'
 
-import style from '../components/List/Character/Character.module.css'
 import Header from '../components/Layout/Header'
+import EpisodeModal from '../components/List/Episode/EpisodeModal'
 import * as action_types from '../store/actions'
 
-const genderOptions = [
-    { value: 'male', label: 'Male' },
-    { value: 'female', label: 'Female' },
-    { value: 'genderless', label: 'Genderless' },
-    { value: 'unknown', label: 'Unknown' }
-]
-
-const statusOptions = [
-    { value: 'alive', label: 'Alive' },
-    { value: 'dead', label: 'Dead' },
-    { value: 'unknown', label: 'Unknown' }
-]
-
 const sortOptions = [
-    { value: 'gender', label: 'Gender' },
-    { value: 'name', label: 'Name' },
-    { value: 'species', label: 'Species' },
-    { value: 'status', label: 'Status' }
+    { value: 'air_date', label: 'Air Date' },
+    { value: 'episode', label: 'Episode' },
+    { value: 'name', label: 'Name' }
 ]
 
-class CharacterList extends Component {
+class EpisodeList extends Component {
     state = {
         max_page: 1,
-        page_num: 1,
+        episodes: [],
         showModal: false,
+        currentEpisode: {},
+        page_num: 1,
+        loading: false,
         filterName: '',
-        filterStatus: '',
-        filterSpecies: '',
-        filterType: '',
-        filterGender: '',
-        query: ''
+        filterEpisode: ''
     }
 
     componentDidMount() {
 
-        Axios.get(`${process.env.REACT_APP_API_URL}/character`)
+        Axios.get(`${process.env.REACT_APP_API_URL}/episode`)
             .then(res => {
                 console.log(res);
                 this.setState({ max_page: res.data.info.pages })
-                this.props.onSetCharacters(res.data.results)
+                this.props.onSetEpisodes(res.data.results)
             })
             .catch(err => {
                 console.log(err);
@@ -69,11 +53,11 @@ class CharacterList extends Component {
     onNextPageClicked = () => {
         if (this.state.page_num === this.state.max_page) return;
         this.setState({ loading: true })
-        Axios.get(`${process.env.REACT_APP_API_URL}/character/?page=${this.state.page_num + 1}&${this.state.query}`)
+        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?page=${this.state.page_num + 1}`)
             .then(res => {
                 console.log(res);
                 this.setState({ loading: false })
-                this.props.onSetCharacters(res.data.results)
+                this.props.onSetEpisodes(res.data.results)
                 window.scrollTo(0, 0)
             })
             .catch(err => {
@@ -85,11 +69,11 @@ class CharacterList extends Component {
     onPrevPageClicked = () => {
         if (this.state.page_num === 1) return;
         this.setState({ loading: true })
-        Axios.get(`${process.env.REACT_APP_API_URL}/character/?page=${this.state.page_num - 1}&${this.state.query}`)
+        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?page=${this.state.page_num - 1}`)
             .then(res => {
                 console.log(res);
                 this.setState({ loading: false })
-                this.props.onSetCharacters(res.data.results)
+                this.props.onSetEpisodes(res.data.results)
                 window.scrollTo(0, 0)
             })
             .catch(err => {
@@ -98,15 +82,13 @@ class CharacterList extends Component {
         this.setState({ page_num: this.state.page_num - 1 })
     }
 
-
     onFirstPageClicked = () => {
-
         this.setState({ loading: true })
-        Axios.get(`${process.env.REACT_APP_API_URL}/character/?page=${1}&${this.state.query}`)
+        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?page=${1}`)
             .then(res => {
                 console.log(res);
                 this.setState({ loading: false })
-                this.props.onSetCharacters(res.data.results)
+                this.props.onSetEpisodes(res.data.results)
                 window.scrollTo(0, 0)
             })
             .catch(err => {
@@ -116,13 +98,12 @@ class CharacterList extends Component {
     }
 
     onLastPageClicked = () => {
-
         this.setState({ loading: true })
-        Axios.get(`${process.env.REACT_APP_API_URL}/character/?page=${this.state.max_page}&${this.state.query}`)
+        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?page=${this.state.max_page}`)
             .then(res => {
                 console.log(res);
                 this.setState({ loading: false })
-                this.props.onSetCharacters(res.data.results)
+                this.props.onSetEpisodes(res.data.results)
                 window.scrollTo(0, 0)
             })
             .catch(err => {
@@ -131,46 +112,33 @@ class CharacterList extends Component {
         this.setState({ page_num: this.state.max_page })
     }
 
-    onGenderChanged = (e) => {
-        console.log(e.value)
-        this.setState({ filterGender: e.value })
+    onNameChange = (e) => {
+        console.log(e.target.value);
+        this.setState({ filterName: e.target.value })
     }
 
-    onStatusChanged = (e) => {
-        console.log(e.value)
-        this.setState({ filterStatus: e.value })
-    }
-
-    onFieldChanged = (e) => {
-        this.setState({
-            [e.target.name]: e.target.value
-        })
-    }
-
-    onFilterSubmit = () => {
-        let query = '';
-        if (this.state.filterName !== '') {
-            query += `name=${this.state.filterName}&`;
-        }
-        if (this.state.filterStatus !== '') {
-            query += `status=${this.state.filterStatus}&`;
-        }
-        if (this.state.filterSpecies !== '') {
-            query += `species=${this.state.filterSpecies}&`;
-        }
-        if (this.state.filterType !== '') {
-            query += `type=${this.state.filterType}&`;
-        }
-        if (this.state.filterGender !== '') {
-            query += `gender=${this.state.filterGender}&`;
-        }
-        console.log(query);
-        this.setState({ query: query })
-        Axios.get(`${process.env.REACT_APP_API_URL}/character?${query}`)
+    onNameSubmit = () => {
+        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?name=${this.state.filterName}&?episode=${this.state.filterEpisode}`)
             .then(res => {
                 console.log(res);
-                this.setState({ page_num: 1, max_page: res.data.info.pages })
-                this.props.onSetCharacters(res.data.results)
+                this.setState({ max_page: res.data.info.pages, page_num: 1 })
+                this.props.onSetEpisodes(res.data.results)
+            })
+            .catch(err => {
+                console.log(err);
+            })
+    }
+
+    onEpisodeChange = (e) => {
+        this.setState({ filterEpisode: e.target.value })
+    }
+
+    onEpisodeSubmit = () => {
+        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?episode=${this.state.filterEpisode}&?name=${this.state.filterName}`)
+            .then(res => {
+                console.log(res);
+                this.setState({ max_page: res.data.info.pages, page_num: 1 })
+                this.props.onSetEpisodes(res.data.results)
             })
             .catch(err => {
                 console.log(err);
@@ -178,10 +146,10 @@ class CharacterList extends Component {
     }
 
     onSortChanged = (e) => {
-        let chrs = this.props.characters;
-        chrs.sort(this.GetSortOrder(e.value))
-        console.log(chrs);
-        this.props.onSetCharacters(chrs)
+        let eps = this.props.episodes;
+        eps.sort(this.GetSortOrder(e.value))
+        console.log(eps);
+        this.props.onSetEpisodes(eps)
     }
 
     GetSortOrder = (prop) => {
@@ -195,17 +163,20 @@ class CharacterList extends Component {
         }
     }
 
-    render() {
-        let { characters } = this.props
+    onShowModal = (episode) => {
+        this.setState({ currentEpisode: episode, showModal: true })
+    }
 
+    render() {
+        let { episodes } = this.props
         return (
             <div>
                 <Header />
                 <Navbar bg="light" variant="light">
                     <Navbar.Brand href="#home">Browse</Navbar.Brand>
                     <Nav className="mr-auto">
-                        <Nav.Link href="/">Episodes</Nav.Link>
-                        <Nav.Link href="/character" active>Characters</Nav.Link>
+                        <Nav.Link href="/" active>Episodes</Nav.Link>
+                        <Nav.Link href="/character">Characters</Nav.Link>
                     </Nav>
                 </Navbar>
                 <Container>
@@ -213,57 +184,36 @@ class CharacterList extends Component {
                         <Col md={4}>
                             <h3 className="mt-2">Filter</h3>
                             <InputGroup className="mb-3">
-
+                                <InputGroup.Prepend>
+                                    <InputGroup.Text id="basic-addon1">#</InputGroup.Text>
+                                </InputGroup.Prepend>
                                 <FormControl
-                                    name="filterName"
                                     placeholder="Name"
-                                    aria-label="episode_num"
-                                    aria-describedby="basic-addon2"
-                                    onChange={this.onFieldChanged}
+                                    aria-label="Username"
+                                    aria-describedby="basic-addon1"
+                                    onChange={this.onNameChange}
                                 />
-
+                                <InputGroup.Append>
+                                    <Button variant="outline-secondary" onClick={this.onNameSubmit}>Search</Button>
+                                </InputGroup.Append>
                             </InputGroup>
 
-                            <InputGroup className="mb-3">
-
+                            <hr />
+                            Episode Number:
+                            <InputGroup className="mb-3 mt-1">
+                                <InputGroup.Prepend>
+                                    <InputGroup.Text id="basic-addon2">e</InputGroup.Text>
+                                </InputGroup.Prepend>
                                 <FormControl
-                                    name="filterSpecies"
-                                    placeholder="Species"
+                                    placeholder="Episode Number"
                                     aria-label="episode_num"
                                     aria-describedby="basic-addon2"
-                                    onChange={this.onFieldChanged}
+                                    onChange={this.onEpisodeChange}
                                 />
-
+                                <InputGroup.Append>
+                                    <Button variant="outline-secondary" onClick={this.onEpisodeSubmit}>Search</Button>
+                                </InputGroup.Append>
                             </InputGroup>
-
-                            <InputGroup className="mb-3">
-
-                                <FormControl
-                                    name="filterType"
-                                    placeholder="Type"
-                                    aria-label="episode_num"
-                                    aria-describedby="basic-addon2"
-                                    onChange={this.onFieldChanged}
-                                />
-
-                            </InputGroup>
-
-                            Gender:
-                            <Select
-                                onChange={this.onGenderChanged}
-                                className="mb-4 mt-1"
-                                options={genderOptions} />
-
-                            Status:
-                            <Select
-                                onChange={this.onStatusChanged}
-                                className="mb-4 mt-1"
-                                options={statusOptions} />
-
-                            <Button
-                                className="mt-2 right"
-                                variant="outline-primary"
-                                onClick={this.onFilterSubmit}>Apply Filter</Button>
 
                             <hr />
 
@@ -273,19 +223,19 @@ class CharacterList extends Component {
                                 className="mb-4 mt-1"
                                 options={sortOptions} />
                         </Col>
-                        <Col md={7}>
-                            <h1 className="mb-4 mt-4">Characters</h1>
+                        <Col md={8}>
+                            <h1 className="mb-1 mt-2">Episodes</h1>
 
                             <ListGroup className="mt-4">
                                 {
-                                    characters.map(character => (
+                                    episodes.map(episode => (
 
-                                        <ListGroup.Item key={character.id} className={`d-flex ${style.character_list_element}`}>
-                                            <img src={character.image} alt="" />
-                                            <div className="d-flex flex-column">
-                                                <h3>{character.name}</h3>
-                                                <Link to={`character/${character.id}`}>View More</Link>
-                                            </div>
+                                        <ListGroup.Item key={episode.id}>
+                                            <h3>{episode.name}</h3>
+                                            <br />
+                                            {episode.air_date} <br />
+                                            {episode.episode}
+                                            <Button style={{ float: "right" }} variant="outline-info" onClick={() => this.onShowModal(episode)}>View More</Button>
                                         </ListGroup.Item>
 
                                     ))
@@ -351,6 +301,11 @@ class CharacterList extends Component {
                         </Col>
                     </Row>
                 </Container>
+                <EpisodeModal
+                    episode={this.state.currentEpisode}
+                    show={this.state.showModal}
+                    onHide={() => this.setState({ showModal: false })}
+                />
             </div>
         )
     }
@@ -358,14 +313,14 @@ class CharacterList extends Component {
 
 const mapStateToProps = state => {
     return {
-        characters: state.chrs.characters
+        episodes: state.eps.episodes
     }
 }
 
 const mapDispatchToProps = dispatch => {
     return {
-        onSetCharacters: (characters) => dispatch({ type: action_types.SET_CHARACTERS, payload: { characters: characters } })
+        onSetEpisodes: (episodes) => dispatch({ type: action_types.SET_EPISODES, payload: { episodes: episodes } })
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(CharacterList);
+export default connect(mapStateToProps, mapDispatchToProps)(EpisodeList);

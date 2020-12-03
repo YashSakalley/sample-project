@@ -1,5 +1,5 @@
 import ReactDOM from 'react-dom';
-import { createStore } from 'redux';
+import { createStore, combineReducers } from 'redux';
 import { Provider } from 'react-redux';
 import axios from "axios";
 
@@ -7,12 +7,18 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 
 import './index.css'
 import App from './App';
-import reducer from './store/reducer';
+import characterReducer from './store/Character/reducer';
+import episodeReducer from './store/Episode/reducer';
 
 require('dotenv').config();
 axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 
-const store = createStore(reducer);
+const rootReducer = combineReducers({
+    chrs: characterReducer,
+    eps: episodeReducer
+})
+
+const store = createStore(rootReducer);
 
 ReactDOM.render(
     <Provider store={store}>

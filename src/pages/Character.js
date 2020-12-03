@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom'
 
 import Axios from 'axios'
 
-import styles from '../components/List/Character.module.css'
+import styles from '../components/List/Character/Character.module.css'
 
 export default function Character() {
 
