@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
+import { connect } from 'react-redux'
 import Axios from 'axios'
 
 import Container from 'react-bootstrap/Container'
@@ -14,6 +15,7 @@ import Select from 'react-select'
 
 import style from '../components/List/Character/Character.module.css'
 import Header from '../components/Layout/Header'
+import * as action_types from '../store/actions'
 
 const genderOptions = [
     { value: '', label: '' },
@@ -37,11 +39,10 @@ const sortOptions = [
     { value: 'status', label: 'Status' }
 ]
 
-export default class Home extends Component {
+class CharacterList extends Component {
     state = {
         max_page: 1,
         page_num: 1,
-        characters: [],
         showModal: false,
         filterName: '',
         filterStatus: '',
@@ -56,7 +57,8 @@ export default class Home extends Component {
         Axios.get(`${process.env.REACT_APP_API_URL}/character`)
             .then(res => {
                 console.log(res);
-                this.setState({ characters: res.data.results, max_page: res.data.info.pages })
+                this.setState({ max_page: res.data.info.pages })
+                this.props.onSetCharacters(res.data.results)
             })
             .catch(err => {
                 console.log(err);
@@ -70,7 +72,8 @@ export default class Home extends Component {
         Axios.get(`${process.env.REACT_APP_API_URL}/character/?page=${this.state.page_num + 1}&${this.state.query}`)
             .then(res => {
                 console.log(res);
-                this.setState({ characters: res.data.results, loading: false })
+                this.setState({ loading: false })
+                this.props.onSetCharacters(res.data.results)
             })
             .catch(err => {
                 console.log(err);
@@ -84,7 +87,8 @@ export default class Home extends Component {
         Axios.get(`${process.env.REACT_APP_API_URL}/character/?page=${this.state.page_num - 1}&${this.state.query}`)
             .then(res => {
                 console.log(res);
-                this.setState({ characters: res.data.results, loading: false })
+                this.setState({ loading: false })
+                this.props.onSetCharacters(res.data.results)
             })
             .catch(err => {
                 console.log(err);
@@ -130,7 +134,8 @@ export default class Home extends Component {
         Axios.get(`${process.env.REACT_APP_API_URL}/character?${query}`)
             .then(res => {
                 console.log(res);
-                this.setState({ page_num: 1, characters: res.data.results, max_page: res.data.info.pages })
+                this.setState({ page_num: 1, max_page: res.data.info.pages })
+                this.props.onSetCharacters(res.data.results)
             })
             .catch(err => {
                 console.log(err);
@@ -138,10 +143,10 @@ export default class Home extends Component {
     }
 
     onSortChanged = (e) => {
-        let eps = this.state.characters;
-        eps.sort(this.GetSortOrder(e.value))
-        console.log(e.value)
-        this.setState(eps)
+        let chrs = this.props.characters;
+        chrs.sort(this.GetSortOrder(e.value))
+        console.log(chrs);
+        this.props.onSetCharacters(chrs)
     }
 
     GetSortOrder = (prop) => {
@@ -156,6 +161,8 @@ export default class Home extends Component {
     }
 
     render() {
+        let { characters } = this.props
+
         return (
             <div>
                 <Header />
@@ -236,7 +243,7 @@ export default class Home extends Component {
 
                             <ListGroup>
                                 {
-                                    this.state.characters.map(character => (
+                                    characters.map(character => (
 
                                         <ListGroup.Item key={character.id} className={`d-flex ${style.character_list_element}`}>
                                             <img src={character.image} alt="" />
@@ -263,3 +270,17 @@ export default class Home extends Component {
         )
     }
 }
+
+const mapStateToProps = state => {
+    return {
+        characters: state.chrs.characters
+    }
+}
+
+const mapDispatchToProps = dispatch => {
+    return {
+        onSetCharacters: (characters) => dispatch({ type: action_types.SET_CHARACTERS, payload: { characters: characters } })
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(CharacterList);

@@ -1,1 +1,4 @@
-export const SET_BLOG = "SET_BLOG"
+export const SET_EPISODES = "SET_EPISODES"
+export const SORT_EPISODES = "SORT_EPISODES"
+export const SET_CHARACTERS = "SET_CHARACTERS"
+export const SORT_CHARACTERS = "SORT_CHARACTERS"

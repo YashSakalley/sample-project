@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
+import { connect } from 'react-redux'
 import Axios from 'axios'
 
 import Container from 'react-bootstrap/Container'
@@ -14,6 +15,7 @@ import Select from 'react-select'
 
 import Header from '../components/Layout/Header'
 import EpisodeModal from '../components/List/Episode/EpisodeModal'
+import * as action_types from '../store/actions'
 
 const sortOptions = [
     { value: 'air_date', label: 'Air Date' },
@@ -21,7 +23,7 @@ const sortOptions = [
     { value: 'name', label: 'Name' }
 ]
 
-export default class Home extends Component {
+class EpisodeList extends Component {
     state = {
         max_page: 1,
         episodes: [],
@@ -38,7 +40,8 @@ export default class Home extends Component {
         Axios.get(`${process.env.REACT_APP_API_URL}/episode`)
             .then(res => {
                 console.log(res);
-                this.setState({ episodes: res.data.results, max_page: res.data.info.pages })
+                this.setState({ max_page: res.data.info.pages })
+                this.props.onSetEpisodes(res.data.results)
             })
             .catch(err => {
                 console.log(err);
@@ -52,7 +55,8 @@ export default class Home extends Component {
         Axios.get(`${process.env.REACT_APP_API_URL}/episode/?page=${this.state.page_num + 1}`)
             .then(res => {
                 console.log(res);
-                this.setState({ episodes: res.data.results, loading: false })
+                this.setState({ loading: false })
+                this.props.onSetEpisodes(res.data.results)
             })
             .catch(err => {
                 console.log(err);
@@ -66,12 +70,53 @@ export default class Home extends Component {
         Axios.get(`${process.env.REACT_APP_API_URL}/episode/?page=${this.state.page_num - 1}`)
             .then(res => {
                 console.log(res);
-                this.setState({ episodes: res.data.results, loading: false })
+                this.setState({ loading: false })
+                this.props.onSetEpisodes(res.data.results)
             })
             .catch(err => {
                 console.log(err);
             })
         this.setState({ page_num: this.state.page_num - 1 })
+    }
+
+    onNameChange = (e) => {
+        console.log(e.target.value);
+        this.setState({ filterName: e.target.value })
+    }
+
+    onNameSubmit = () => {
+        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?name=${this.state.filterName}&?episode=${this.state.filterEpisode}`)
+            .then(res => {
+                console.log(res);
+                this.setState({ max_page: res.data.info.pages, page_num: 1 })
+                this.props.onSetEpisodes(res.data.results)
+            })
+            .catch(err => {
+                console.log(err);
+            })
+    }
+
+    onEpisodeChange = (e) => {
+        this.setState({ filterEpisode: e.target.value })
+    }
+
+    onEpisodeSubmit = () => {
+        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?episode=${this.state.filterEpisode}&?name=${this.state.filterName}`)
+            .then(res => {
+                console.log(res);
+                this.setState({ max_page: res.data.info.pages, page_num: 1 })
+                this.props.onSetEpisodes(res.data.results)
+            })
+            .catch(err => {
+                console.log(err);
+            })
+    }
+
+    onSortChanged = (e) => {
+        let eps = this.props.episodes;
+        eps.sort(this.GetSortOrder(e.value))
+        console.log(eps);
+        this.props.onSetEpisodes(eps)
     }
 
     GetSortOrder = (prop) => {
@@ -85,52 +130,12 @@ export default class Home extends Component {
         }
     }
 
-    onNameChange = (e) => {
-        console.log(e.target.value);
-        this.setState({ filterName: e.target.value })
-    }
-
-    onNameSubmit = () => {
-        console.log(this.state.filterName);
-        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?name=${this.state.filterName}&?episode=${this.state.filterEpisode}`)
-            .then(res => {
-                console.log(res);
-                this.setState({ episodes: res.data.results, max_page: res.data.info.pages })
-            })
-            .catch(err => {
-                console.log(err);
-            })
-    }
-
-    onEpisodeChange = (e) => {
-        console.log(e.target.value);
-        this.setState({ filterEpisode: e.target.value })
-    }
-
-    onEpisodeSubmit = () => {
-        console.log(this.state.filterEpisode);
-        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?episode=${this.state.filterEpisode}&?name=${this.state.filterName}`)
-            .then(res => {
-                console.log(res);
-                this.setState({ episodes: res.data.results, max_page: res.data.info.pages })
-            })
-            .catch(err => {
-                console.log(err);
-            })
-    }
-
-    onSortChanged = (e) => {
-        let eps = this.state.episodes;
-        eps.sort(this.GetSortOrder(e.value))
-        console.log(e.value)
-        this.setState(eps)
-    }
-
     onShowModal = (episode) => {
         this.setState({ currentEpisode: episode, showModal: true })
     }
 
     render() {
+        let { episodes } = this.props
         return (
             <div>
                 <Header />
@@ -189,7 +194,7 @@ export default class Home extends Component {
                             </Pagination>
                             <ListGroup>
                                 {
-                                    this.state.episodes.map(episode => (
+                                    episodes.map(episode => (
 
                                         <ListGroup.Item key={episode.id}>
                                             <h3>{episode.name}</h3>
@@ -221,3 +226,17 @@ export default class Home extends Component {
         )
     }
 }
+
+const mapStateToProps = state => {
+    return {
+        episodes: state.eps.episodes
+    }
+}
+
+const mapDispatchToProps = dispatch => {
+    return {
+        onSetEpisodes: (episodes) => dispatch({ type: action_types.SET_EPISODES, payload: { episodes: episodes } })
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(EpisodeList);
