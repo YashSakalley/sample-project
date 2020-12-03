@@ -13,7 +13,7 @@ import InputGroup from 'react-bootstrap/InputGroup'
 import Select from 'react-select'
 
 import Header from '../components/Layout/Header'
-import EpisodeModal from '../components/List/EpisodeModal'
+import EpisodeModal from '../components/List/Episode/EpisodeModal'
 
 const sortOptions = [
     { value: 'air_date', label: 'Air Date' },

@@ -12,7 +12,7 @@ import FormControl from 'react-bootstrap/FormControl'
 import InputGroup from 'react-bootstrap/InputGroup'
 import Select from 'react-select'
 
-import style from '../components/List/Character.module.css'
+import style from '../components/List/Character/Character.module.css'
 import Header from '../components/Layout/Header'
 
 const genderOptions = [
