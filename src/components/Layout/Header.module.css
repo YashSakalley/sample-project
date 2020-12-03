@@ -1,0 +1,24 @@
+.header {
+  height: 15vh;
+  background-color: #39424e;
+  color: white;
+  font-family: cursive;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 45px;
+}
+
+.filter {
+  display: flex;
+}
+
+.header input,
+.header select,
+.header button,
+.header select option {
+  padding: 10px;
+  margin: 5px;
+}

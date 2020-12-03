@@ -1,7 +1,10 @@
 import { Route, Switch } from 'react-router-dom';
+
 import Details from './pages/Details';
-import Home from './pages/Home';
+import EpisodeList from './pages/Home';
 import List from './pages/List';
+import Character from './pages/Character'
+import CharacterList from './pages/CharacterList'
 
 
 const AppRouter = () => {
@@ -11,12 +14,20 @@ const AppRouter = () => {
                 <List />
             </Route>
 
-            <Route path="/details/:id">
+            <Route path="/details">
                 <Details />
             </Route>
 
+            <Route path="/character/:id">
+                <Character />
+            </Route>
+
+            <Route path="/character">
+                <CharacterList />
+            </Route>
+
             <Route path="">
-                <Home />
+                <EpisodeList />
             </Route>
         </Switch>
     )

@@ -1,0 +1,23 @@
+.character {
+  background-color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 5px 2px gray;
+}
+
+.character_list_element img {
+  height: 65px;
+  margin: 0 10px 10px 10px;
+}
+
+.background {
+  height: 50vh;
+  width: 100vw;
+  background-color: #39424e;
+}
+
+.character_list_element {
+  display: flex;
+}
