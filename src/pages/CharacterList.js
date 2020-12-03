@@ -209,13 +209,13 @@ class CharacterList extends Component {
                             Gender:
                             <Select
                                 onChange={this.onGenderChanged}
-                                className="mb-4"
+                                className="mb-4 mt-1"
                                 options={genderOptions} />
 
                             Status:
                             <Select
                                 onChange={this.onStatusChanged}
-                                className="mb-4"
+                                className="mb-4 mt-1"
                                 options={statusOptions} />
 
                             <Button
@@ -228,20 +228,14 @@ class CharacterList extends Component {
                             Sort:
                             <Select
                                 onChange={this.onSortChanged}
-                                className="mb-4"
+                                className="mb-4 mt-1"
                                 options={sortOptions} />
                         </Col>
                         <Col md={7}>
-                            <h1 className="mb-4 mt-2">Characters</h1>
+                            <h1 className="mb-1 mt-2">Characters</h1>
                             <Link to="/">Browse Episodes</Link>
-                            <Pagination className="mt-2 mb-4 d-flex justify-content-center">
-                                <Pagination.Prev disabled={this.state.page_num === 1} onClick={this.onPrevPageClicked} />
-                                <Pagination.Item>{this.state.page_num}</Pagination.Item>
-                                <Pagination.Next disabled={this.state.page_num === this.state.max_page} onClick={this.onNextPageClicked} />
-                                {this.state.loading && <Pagination.Item> Please Wait</Pagination.Item>}
-                            </Pagination>
 
-                            <ListGroup>
+                            <ListGroup className="mt-4">
                                 {
                                     characters.map(character => (
 

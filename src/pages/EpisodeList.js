@@ -160,7 +160,7 @@ class EpisodeList extends Component {
 
                             <hr />
                             Episode Number:
-                            <InputGroup className="mb-3">
+                            <InputGroup className="mb-3 mt-1">
                                 <InputGroup.Prepend>
                                     <InputGroup.Text id="basic-addon2">e</InputGroup.Text>
                                 </InputGroup.Prepend>
@@ -180,19 +180,14 @@ class EpisodeList extends Component {
                             Sort:
                             <Select
                                 onChange={this.onSortChanged}
-                                className="mb-4"
+                                className="mb-4 mt-1"
                                 options={sortOptions} />
                         </Col>
                         <Col md={8}>
-                            <h1 className="mb-4 mt-2">Episodes</h1>
+                            <h1 className="mb-1 mt-2">Episodes</h1>
                             <Link to="/character">Browse Characters</Link>
-                            <Pagination className="mt-2 mb-4 d-flex justify-content-center">
-                                <Pagination.Prev disabled={this.state.page_num === 1} onClick={this.onPrevPageClicked} />
-                                <Pagination.Item>{this.state.page_num}</Pagination.Item>
-                                <Pagination.Next disabled={this.state.page_num === this.state.max_page} onClick={this.onNextPageClicked} />
-                                {this.state.loading && <Pagination.Item> Please Wait</Pagination.Item>}
-                            </Pagination>
-                            <ListGroup>
+
+                            <ListGroup className="mt-4">
                                 {
                                     episodes.map(episode => (
 
