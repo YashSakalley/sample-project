@@ -27,140 +27,97 @@ const sortOptions = [
 class EpisodeList extends Component {
     state = {
         max_page: 1,
-        episodes: [],
-        showModal: false,
-        currentEpisode: {},
         page_num: 1,
+        showModal: false,
         loading: false,
         filterName: '',
-        filterEpisode: ''
+        filterEpisode: '',
+        currentEpisode: {},
+        error: ''
     }
 
-    componentDidMount() {
-
-        Axios.get(`${process.env.REACT_APP_API_URL}/episode`)
-            .then(res => {
-                console.log(res);
-                this.setState({ max_page: res.data.info.pages })
-                this.props.onSetEpisodes(res.data.results)
-            })
-            .catch(err => {
-                console.log(err);
-            })
-
-    }
-
-    onNextPageClicked = () => {
-        if (this.state.page_num === this.state.max_page) return;
+    fetchApi = (params) => {
         this.setState({ loading: true })
-        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?page=${this.state.page_num + 1}`)
+        Axios.get(`${process.env.REACT_APP_API_URL}/episode`, { params })
             .then(res => {
                 console.log(res);
-                this.setState({ loading: false })
+                this.setState({ loading: false, max_page: res.data.info.pages, error: '' })
                 this.props.onSetEpisodes(res.data.results)
                 window.scrollTo(0, 0)
             })
             .catch(err => {
                 console.log(err);
+                this.setState({ error: 'No episodes found' })
             })
+    }
+
+    componentDidMount() {
+        this.fetchApi(null)
+    }
+
+    onNextPageClicked = () => {
+        if (this.state.page_num === this.state.max_page) return;
+        const params = {
+            page: this.state.page_num + 1
+        }
+
+        this.fetchApi(params)
         this.setState({ page_num: this.state.page_num + 1 })
     }
 
     onPrevPageClicked = () => {
         if (this.state.page_num === 1) return;
-        this.setState({ loading: true })
-        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?page=${this.state.page_num - 1}`)
-            .then(res => {
-                console.log(res);
-                this.setState({ loading: false })
-                this.props.onSetEpisodes(res.data.results)
-                window.scrollTo(0, 0)
-            })
-            .catch(err => {
-                console.log(err);
-            })
+        const params = {
+            page: this.state.page_num - 1
+        }
+
+        this.fetchApi(params)
         this.setState({ page_num: this.state.page_num - 1 })
     }
 
     onFirstPageClicked = () => {
-        this.setState({ loading: true })
-        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?page=${1}`)
-            .then(res => {
-                console.log(res);
-                this.setState({ loading: false })
-                this.props.onSetEpisodes(res.data.results)
-                window.scrollTo(0, 0)
-            })
-            .catch(err => {
-                console.log(err);
-            })
+        const params = {
+            page: 1
+        }
+
+        this.fetchApi(params)
         this.setState({ page_num: 1 })
     }
 
     onLastPageClicked = () => {
-        this.setState({ loading: true })
-        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?page=${this.state.max_page}`)
-            .then(res => {
-                console.log(res);
-                this.setState({ loading: false })
-                this.props.onSetEpisodes(res.data.results)
-                window.scrollTo(0, 0)
-            })
-            .catch(err => {
-                console.log(err);
-            })
+        const params = {
+            page: this.state.max_page
+        }
+
+        this.fetchApi(params)
         this.setState({ page_num: this.state.max_page })
     }
 
     onNameChange = (e) => {
-        console.log(e.target.value);
         this.setState({ filterName: e.target.value })
-    }
-
-    onNameSubmit = () => {
-        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?name=${this.state.filterName}&?episode=${this.state.filterEpisode}`)
-            .then(res => {
-                console.log(res);
-                this.setState({ max_page: res.data.info.pages, page_num: 1 })
-                this.props.onSetEpisodes(res.data.results)
-            })
-            .catch(err => {
-                console.log(err);
-            })
     }
 
     onEpisodeChange = (e) => {
         this.setState({ filterEpisode: e.target.value })
     }
 
-    onEpisodeSubmit = () => {
-        Axios.get(`${process.env.REACT_APP_API_URL}/episode/?episode=${this.state.filterEpisode}&?name=${this.state.filterName}`)
-            .then(res => {
-                console.log(res);
-                this.setState({ max_page: res.data.info.pages, page_num: 1 })
-                this.props.onSetEpisodes(res.data.results)
-            })
-            .catch(err => {
-                console.log(err);
-            })
-    }
-
-    onSortChanged = async (e) => {
-        let eps = this.props.episodes;
-        await eps.sort(this.GetSortOrder(e.value))
-        console.log('sort');
-        this.props.onSetEpisodes(eps)
-    }
-
-    GetSortOrder = (prop) => {
-        return function (a, b) {
-            if (a[prop] > b[prop]) {
-                return 1;
-            } else if (a[prop] < b[prop]) {
-                return -1;
-            }
-            return 0;
+    onQuerySubmit = () => {
+        const params = {
+            name: this.state.filterName,
+            episode: this.state.filterEpisode
         }
+
+        this.fetchApi(params)
+        this.setState({ page_num: 1 })
+    }
+
+    onClearFilters = () => {
+        this.setState({ filterEpisode: '', filterName: '' })
+        this.fetchApi()
+    }
+
+    onSortChanged = (e) => {
+        this.props.onSortEpisodes(e.value)
     }
 
     onShowModal = (episode) => {
@@ -168,7 +125,9 @@ class EpisodeList extends Component {
     }
 
     render() {
-        let { episodes } = this.props
+        const { episodes } = this.props
+        const { page_num } = this.state
+
         return (
             <div>
                 <Header />
@@ -192,13 +151,11 @@ class EpisodeList extends Component {
                                     aria-label="Username"
                                     aria-describedby="basic-addon1"
                                     onChange={this.onNameChange}
+                                    value={this.state.filterName}
                                 />
-                                <InputGroup.Append>
-                                    <Button variant="outline-secondary" onClick={this.onNameSubmit}>Search</Button>
-                                </InputGroup.Append>
+
                             </InputGroup>
 
-                            <hr />
                             Episode Number:
                             <InputGroup className="mb-3 mt-1">
                                 <InputGroup.Prepend>
@@ -209,11 +166,12 @@ class EpisodeList extends Component {
                                     aria-label="episode_num"
                                     aria-describedby="basic-addon2"
                                     onChange={this.onEpisodeChange}
+                                    value={this.state.filterEpisode}
                                 />
-                                <InputGroup.Append>
-                                    <Button variant="outline-secondary" onClick={this.onEpisodeSubmit}>Search</Button>
-                                </InputGroup.Append>
+
                             </InputGroup>
+
+                            <Button variant="outline-secondary" onClick={this.onQuerySubmit}>Search</Button>
 
                             <hr />
 
@@ -225,79 +183,90 @@ class EpisodeList extends Component {
                         </Col>
                         <Col md={8}>
                             <h1 className="mb-1 mt-2">Episodes</h1>
-
-                            <ListGroup className="mt-4">
-                                {
-                                    episodes.map(episode => (
-
-                                        <ListGroup.Item key={episode.id}>
-                                            <h3>{episode.name}</h3>
-                                            <br />
-                                            {episode.air_date} <br />
-                                            {episode.episode}
-                                            <Button style={{ float: "right" }} variant="outline-info" onClick={() => this.onShowModal(episode)}>View More</Button>
-                                        </ListGroup.Item>
-
-                                    ))
-                                }
-                            </ListGroup>
-
-                            <Pagination className="mt-2 mb-4 d-flex justify-content-center">
-                                {this.state.loading && <Pagination.Item> Please Wait</Pagination.Item>}
-                            </Pagination>
-
-                            <Pagination className="mt-2 mb-4 d-flex justify-content-center">
-                                {
-                                    this.state.page_num - 1 > 0
-                                        ? <>
-                                            <Pagination.First disabled={this.state.page_num === 1} onClick={this.onFirstPageClicked} />
-                                            <Pagination.Prev disabled={this.state.page_num === 1} onClick={this.onPrevPageClicked} />
-
+                            {
+                                this.state.error
+                                    ?
+                                    <>
+                                        {this.state.error}
+                                        <Button variant="info" className="m-2" onClick={this.onClearFilters}>Clear Filters</Button>
+                                    </>
+                                    :
+                                    <>
+                                        <ListGroup className="mt-4">
                                             {
-                                                this.state.page_num === 2
-                                                    ? null
-                                                    : <>
-                                                        <Pagination.Item disabled={this.state.page_num === 1} onClick={this.onFirstPageClicked}>{1}</Pagination.Item>
-                                                        {
-                                                            this.state.page_num === 3
-                                                                ? null
-                                                                :
-                                                                <Pagination.Ellipsis />
-                                                        }
-                                                    </>
+                                                episodes.map(episode => (
+
+                                                    <ListGroup.Item key={episode.id}>
+                                                        <h3>{episode.name}</h3>
+                                                        <br />
+                                                        {episode.air_date} <br />
+                                                        {episode.episode}
+                                                        <Button style={{ float: "right" }} variant="outline-info" onClick={() => this.onShowModal(episode)}>View More</Button>
+                                                    </ListGroup.Item>
+
+                                                ))
                                             }
-                                            <Pagination.Item onClick={this.onPrevPageClicked} >{this.state.page_num - 1}</Pagination.Item>
-                                        </>
-                                        : null
-                                }
+                                        </ListGroup>
 
-                                <Pagination.Item active>{this.state.page_num}</Pagination.Item>
+                                        <Pagination className="mt-2 mb-4 d-flex justify-content-center">
+                                            {this.state.loading && <Pagination.Item> Please Wait</Pagination.Item>}
+                                        </Pagination>
 
-                                {
-                                    this.state.page_num < this.state.max_page
-                                        ?
-                                        <>
-                                            <Pagination.Item onClick={this.onNextPageClicked}>{this.state.page_num + 1}</Pagination.Item>
+                                        <Pagination className="mt-2 mb-4 d-flex justify-content-center">
                                             {
-                                                this.state.page_num === this.state.max_page - 1
-                                                    ? null
-                                                    : <>
+                                                page_num - 1 > 0
+                                                    ? <>
+                                                        <Pagination.First disabled={page_num === 1} onClick={this.onFirstPageClicked} />
+                                                        <Pagination.Prev disabled={page_num === 1} onClick={this.onPrevPageClicked} />
+
                                                         {
-                                                            this.state.page_num === this.state.max_page - 2
+                                                            page_num === 2
                                                                 ? null
-                                                                :
-                                                                <Pagination.Ellipsis />
+                                                                : <>
+                                                                    <Pagination.Item disabled={page_num === 1} onClick={this.onFirstPageClicked}>{1}</Pagination.Item>
+                                                                    {
+                                                                        page_num === 3
+                                                                            ? null
+                                                                            :
+                                                                            <Pagination.Ellipsis />
+                                                                    }
+                                                                </>
                                                         }
-                                                        <Pagination.Item onClick={this.onLastPageClicked}>{this.state.max_page}</Pagination.Item>
+                                                        <Pagination.Item onClick={this.onPrevPageClicked} >{page_num - 1}</Pagination.Item>
                                                     </>
+                                                    : null
                                             }
 
-                                            <Pagination.Next disabled={this.state.page_num === this.state.max_page} onClick={this.onNextPageClicked} />
-                                            <Pagination.Last disabled={this.state.page_num === this.state.max_page} onClick={this.onLastPageClicked} />
-                                        </> : null
-                                }
+                                            <Pagination.Item active>{page_num}</Pagination.Item>
 
-                            </Pagination>
+                                            {
+                                                page_num < this.state.max_page
+                                                    ?
+                                                    <>
+                                                        <Pagination.Item onClick={this.onNextPageClicked}>{page_num + 1}</Pagination.Item>
+                                                        {
+                                                            page_num === this.state.max_page - 1
+                                                                ? null
+                                                                : <>
+                                                                    {
+                                                                        page_num === this.state.max_page - 2
+                                                                            ? null
+                                                                            :
+                                                                            <Pagination.Ellipsis />
+                                                                    }
+                                                                    <Pagination.Item onClick={this.onLastPageClicked}>{this.state.max_page}</Pagination.Item>
+                                                                </>
+                                                        }
+
+                                                        <Pagination.Next disabled={page_num === this.state.max_page} onClick={this.onNextPageClicked} />
+                                                        <Pagination.Last disabled={page_num === this.state.max_page} onClick={this.onLastPageClicked} />
+                                                    </> : null
+                                            }
+
+                                        </Pagination>
+                                    </>
+                            }
+
                         </Col>
                     </Row>
                 </Container>
@@ -319,7 +288,8 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        onSetEpisodes: (episodes) => dispatch({ type: action_types.SET_EPISODES, payload: { episodes: episodes } })
+        onSetEpisodes: (episodes) => dispatch({ type: action_types.SET_EPISODES, payload: { episodes: episodes } }),
+        onSortEpisodes: (attr) => dispatch({ type: action_types.SORT_EPISODES, payload: { attr: attr } })
     }
 }
 

@@ -22,7 +22,6 @@ const reducer = (state = initialState, action) => {
             let eps = state.episodes
             eps.sort(GetSortOrder(action.payload.attr))
             console.log(eps);
-            console.log(state.episodes);
             return {
                 episodes: eps
             }

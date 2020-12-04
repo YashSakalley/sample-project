@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { Badge, Breadcrumb, Col, Container, Image, Row } from 'react-bootstrap'
-import { useParams } from 'react-router-dom'
+import { Badge, Breadcrumb, Button, Col, Container, Image, Row } from 'react-bootstrap'
+import { useParams, useHistory } from 'react-router-dom'
 
 import Axios from 'axios'
 
 import styles from '../components/List/Character/Character.module.css'
 
-export default function Character() {
 
+
+export default function Character() {
+    const history = useHistory();
     const id = useParams().id
     const [character, setCharacter] = useState({
         name: '',
@@ -17,15 +19,23 @@ export default function Character() {
         episode: []
     })
 
+
+
     useEffect(() => {
-        Axios.get(`${process.env.REACT_APP_API_URL}/character/${id}`)
-            .then(res => {
-                console.log(res);
-                setCharacter(res.data);
-            })
-            .catch(err => {
-                console.log(err);
-            })
+
+        const fetchApi = (id) => {
+            Axios.get(`${process.env.REACT_APP_API_URL}/character/${id}`)
+                .then(res => {
+                    console.log(res);
+                    setCharacter(res.data)
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+        }
+
+        fetchApi(id)
+
     }, [id])
 
     let statusColor = '';
@@ -69,6 +79,7 @@ export default function Character() {
                             <Breadcrumb.Item active>{character.name}</Breadcrumb.Item>
                         </Breadcrumb>
                         <h2>{character.name.toUpperCase()}</h2>
+                        <Button onClick={() => history.goBack()} size="sm" variant="light">Go Back</Button>
                         <div className="d-flex align-items-center">
                             <div style={{
                                 width: '20px',

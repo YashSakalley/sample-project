@@ -44,95 +44,79 @@ class CharacterList extends Component {
         max_page: 1,
         page_num: 1,
         showModal: false,
+        loading: false,
         filterName: '',
         filterStatus: '',
         filterSpecies: '',
         filterType: '',
         filterGender: '',
-        query: ''
+        query: {},
+        error: ''
     }
 
-    componentDidMount() {
-
-        Axios.get(`${process.env.REACT_APP_API_URL}/character`)
-            .then(res => {
-                console.log(res);
-                this.setState({ max_page: res.data.info.pages })
-                this.props.onSetCharacters(res.data.results)
-            })
-            .catch(err => {
-                console.log(err);
-            })
-
-    }
-
-    onNextPageClicked = () => {
-        if (this.state.page_num === this.state.max_page) return;
+    fetchApi = (params) => {
         this.setState({ loading: true })
-        Axios.get(`${process.env.REACT_APP_API_URL}/character/?page=${this.state.page_num + 1}&${this.state.query}`)
+        Axios.get(`${process.env.REACT_APP_API_URL}/character/`, { params })
             .then(res => {
                 console.log(res);
-                this.setState({ loading: false })
+                this.setState({ loading: false, max_page: res.data.info.pages, error: '' })
                 this.props.onSetCharacters(res.data.results)
                 window.scrollTo(0, 0)
             })
             .catch(err => {
                 console.log(err);
+                this.setState({ error: 'No characters found' })
             })
+    }
+
+    componentDidMount() {
+        this.fetchApi(null)
+    }
+
+    onNextPageClicked = () => {
+        if (this.state.page_num === this.state.max_page) return;
+        const params = {
+            page: this.state.page_num + 1,
+            ...this.state.query
+        }
+
+        this.fetchApi(params)
         this.setState({ page_num: this.state.page_num + 1 })
     }
 
     onPrevPageClicked = () => {
         if (this.state.page_num === 1) return;
-        this.setState({ loading: true })
-        Axios.get(`${process.env.REACT_APP_API_URL}/character/?page=${this.state.page_num - 1}&${this.state.query}`)
-            .then(res => {
-                console.log(res);
-                this.setState({ loading: false })
-                this.props.onSetCharacters(res.data.results)
-                window.scrollTo(0, 0)
-            })
-            .catch(err => {
-                console.log(err);
-            })
+        const params = {
+            page: this.state.page_num - 1,
+            ...this.state.query
+        }
+
+        this.fetchApi(params)
         this.setState({ page_num: this.state.page_num - 1 })
     }
 
-
     onFirstPageClicked = () => {
+        const params = {
+            page: 1,
+            ...this.state.query
+        }
 
-        this.setState({ loading: true })
-        Axios.get(`${process.env.REACT_APP_API_URL}/character/?page=${1}&${this.state.query}`)
-            .then(res => {
-                console.log(res);
-                this.setState({ loading: false })
-                this.props.onSetCharacters(res.data.results)
-                window.scrollTo(0, 0)
-            })
-            .catch(err => {
-                console.log(err);
-            })
+        this.fetchApi(params)
         this.setState({ page_num: 1 })
     }
 
     onLastPageClicked = () => {
+        const params = {
+            page: this.state.max_page,
+            ...this.state.query
+        }
 
-        this.setState({ loading: true })
-        Axios.get(`${process.env.REACT_APP_API_URL}/character/?page=${this.state.max_page}&${this.state.query}`)
-            .then(res => {
-                console.log(res);
-                this.setState({ loading: false })
-                this.props.onSetCharacters(res.data.results)
-                window.scrollTo(0, 0)
-            })
-            .catch(err => {
-                console.log(err);
-            })
+        this.fetchApi(params)
         this.setState({ page_num: this.state.max_page })
     }
 
     onGenderChanged = (e) => {
-        console.log(e.value)
+        console.log(e)
         this.setState({ filterGender: e.value })
     }
 
@@ -148,55 +132,38 @@ class CharacterList extends Component {
     }
 
     onFilterSubmit = () => {
-        let query = '';
-        if (this.state.filterName !== '') {
-            query += `name=${this.state.filterName}&`;
+
+        const params = {
+            name: this.state.filterName,
+            status: this.state.filterStatus,
+            species: this.state.filterSpecies,
+            type: this.state.filterType,
+            gender: this.state.filterGender
         }
-        if (this.state.filterStatus !== '') {
-            query += `status=${this.state.filterStatus}&`;
-        }
-        if (this.state.filterSpecies !== '') {
-            query += `species=${this.state.filterSpecies}&`;
-        }
-        if (this.state.filterType !== '') {
-            query += `type=${this.state.filterType}&`;
-        }
-        if (this.state.filterGender !== '') {
-            query += `gender=${this.state.filterGender}&`;
-        }
-        console.log(query);
-        this.setState({ query: query })
-        Axios.get(`${process.env.REACT_APP_API_URL}/character?${query}`)
-            .then(res => {
-                console.log(res);
-                this.setState({ page_num: 1, max_page: res.data.info.pages })
-                this.props.onSetCharacters(res.data.results)
-            })
-            .catch(err => {
-                console.log(err);
-            })
+
+        this.setState({ query: params })
+        this.fetchApi(params)
+
+    }
+
+    onClearFilters = () => {
+        this.setState({
+            filterName: '',
+            filterSpecies: '',
+            filterType: '',
+            filterGender: '',
+            filterStatus: ''
+        })
+        this.fetchApi()
     }
 
     onSortChanged = (e) => {
-        let chrs = this.props.characters;
-        chrs.sort(this.GetSortOrder(e.value))
-        console.log(chrs);
-        this.props.onSetCharacters(chrs)
-    }
-
-    GetSortOrder = (prop) => {
-        return function (a, b) {
-            if (a[prop] > b[prop]) {
-                return 1;
-            } else if (a[prop] < b[prop]) {
-                return -1;
-            }
-            return 0;
-        }
+        this.props.onSortCharacters(e.value)
     }
 
     render() {
-        let { characters } = this.props
+        const { characters } = this.props
+        const { page_num, max_page } = this.state
 
         return (
             <div>
@@ -220,6 +187,7 @@ class CharacterList extends Component {
                                     aria-label="episode_num"
                                     aria-describedby="basic-addon2"
                                     onChange={this.onFieldChanged}
+                                    value={this.state.filterName}
                                 />
 
                             </InputGroup>
@@ -232,6 +200,7 @@ class CharacterList extends Component {
                                     aria-label="episode_num"
                                     aria-describedby="basic-addon2"
                                     onChange={this.onFieldChanged}
+                                    value={this.state.filterSpecies}
                                 />
 
                             </InputGroup>
@@ -244,6 +213,7 @@ class CharacterList extends Component {
                                     aria-label="episode_num"
                                     aria-describedby="basic-addon2"
                                     onChange={this.onFieldChanged}
+                                    value={this.state.filterType}
                                 />
 
                             </InputGroup>
@@ -275,79 +245,90 @@ class CharacterList extends Component {
                         </Col>
                         <Col md={7}>
                             <h1 className="mb-4 mt-4">Characters</h1>
-
-                            <ListGroup className="mt-4">
-                                {
-                                    characters.map(character => (
-
-                                        <ListGroup.Item key={character.id} className={`d-flex ${style.character_list_element}`}>
-                                            <img src={character.image} alt="" />
-                                            <div className="d-flex flex-column">
-                                                <h3>{character.name}</h3>
-                                                <Link to={`character/${character.id}`}>View More</Link>
-                                            </div>
-                                        </ListGroup.Item>
-
-                                    ))
-                                }
-                            </ListGroup>
-
-                            <Pagination className="mt-2 mb-4 d-flex justify-content-center">
-                                {this.state.loading && <Pagination.Item> Please Wait</Pagination.Item>}
-                            </Pagination>
-
-                            <Pagination className="mt-2 mb-4 d-flex justify-content-center">
-                                {
-                                    this.state.page_num - 1 > 0
-                                        ? <>
-                                            <Pagination.First disabled={this.state.page_num === 1} onClick={this.onFirstPageClicked} />
-                                            <Pagination.Prev disabled={this.state.page_num === 1} onClick={this.onPrevPageClicked} />
-
+                            {
+                                this.state.error
+                                    ?
+                                    <>
+                                        {this.state.error}
+                                        <Button variant="info" className="m-2" onClick={this.onClearFilters}>Clear Filters</Button>
+                                    </>
+                                    :
+                                    <>
+                                        <ListGroup className="mt-4">
                                             {
-                                                this.state.page_num === 2
-                                                    ? null
-                                                    : <>
-                                                        <Pagination.Item disabled={this.state.page_num === 1} onClick={this.onFirstPageClicked}>{1}</Pagination.Item>
-                                                        {
-                                                            this.state.page_num === 3
-                                                                ? null
-                                                                :
-                                                                <Pagination.Ellipsis />
-                                                        }
-                                                    </>
+                                                characters.map(character => (
+
+                                                    <ListGroup.Item key={character.id} className={`d-flex ${style.character_list_element}`}>
+                                                        <img src={character.image} alt="" />
+                                                        <div className="d-flex flex-column">
+                                                            <h3>{character.name}</h3>
+                                                            <Link to={`character/${character.id}`}>View More</Link>
+                                                        </div>
+                                                    </ListGroup.Item>
+
+                                                ))
                                             }
-                                            <Pagination.Item onClick={this.onPrevPageClicked} >{this.state.page_num - 1}</Pagination.Item>
-                                        </>
-                                        : null
-                                }
+                                        </ListGroup>
 
-                                <Pagination.Item active>{this.state.page_num}</Pagination.Item>
+                                        <Pagination className="mt-2 mb-4 d-flex justify-content-center">
+                                            {this.state.loading && <Pagination.Item> Please Wait</Pagination.Item>}
+                                        </Pagination>
 
-                                {
-                                    this.state.page_num < this.state.max_page
-                                        ?
-                                        <>
-                                            <Pagination.Item onClick={this.onNextPageClicked}>{this.state.page_num + 1}</Pagination.Item>
+                                        <Pagination className="mt-2 mb-4 d-flex justify-content-center">
                                             {
-                                                this.state.page_num === this.state.max_page - 1
-                                                    ? null
-                                                    : <>
+                                                page_num - 1 > 0
+                                                    ? <>
+                                                        <Pagination.First disabled={page_num === 1} onClick={this.onFirstPageClicked} />
+                                                        <Pagination.Prev disabled={page_num === 1} onClick={this.onPrevPageClicked} />
+
                                                         {
-                                                            this.state.page_num === this.state.max_page - 2
+                                                            page_num === 2
                                                                 ? null
-                                                                :
-                                                                <Pagination.Ellipsis />
+                                                                : <>
+                                                                    <Pagination.Item disabled={page_num === 1} onClick={this.onFirstPageClicked}>{1}</Pagination.Item>
+                                                                    {
+                                                                        page_num === 3
+                                                                            ? null
+                                                                            :
+                                                                            <Pagination.Ellipsis />
+                                                                    }
+                                                                </>
                                                         }
-                                                        <Pagination.Item onClick={this.onLastPageClicked}>{this.state.max_page}</Pagination.Item>
+                                                        <Pagination.Item onClick={this.onPrevPageClicked} >{page_num - 1}</Pagination.Item>
                                                     </>
+                                                    : null
                                             }
 
-                                            <Pagination.Next disabled={this.state.page_num === this.state.max_page} onClick={this.onNextPageClicked} />
-                                            <Pagination.Last disabled={this.state.page_num === this.state.max_page} onClick={this.onLastPageClicked} />
-                                        </> : null
-                                }
+                                            <Pagination.Item active>{page_num}</Pagination.Item>
 
-                            </Pagination>
+                                            {
+                                                page_num < max_page
+                                                    ?
+                                                    <>
+                                                        <Pagination.Item onClick={this.onNextPageClicked}>{page_num + 1}</Pagination.Item>
+                                                        {
+                                                            page_num === max_page - 1
+                                                                ? null
+                                                                : <>
+                                                                    {
+                                                                        page_num === max_page - 2
+                                                                            ? null
+                                                                            :
+                                                                            <Pagination.Ellipsis />
+                                                                    }
+                                                                    <Pagination.Item onClick={this.onLastPageClicked}>{max_page}</Pagination.Item>
+                                                                </>
+                                                        }
+
+                                                        <Pagination.Next disabled={page_num === max_page} onClick={this.onNextPageClicked} />
+                                                        <Pagination.Last disabled={page_num === max_page} onClick={this.onLastPageClicked} />
+                                                    </> : null
+                                            }
+
+                                        </Pagination>
+
+                                    </>
+                            }
                         </Col>
                     </Row>
                 </Container>
@@ -364,7 +345,8 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        onSetCharacters: (characters) => dispatch({ type: action_types.SET_CHARACTERS, payload: { characters: characters } })
+        onSetCharacters: (characters) => dispatch({ type: action_types.SET_CHARACTERS, payload: { characters: characters } }),
+        onSortCharacters: (attr) => dispatch({ type: action_types.SORT_CHARACTERS, payload: { attr: attr } })
     }
 }
 

@@ -14,11 +14,11 @@ export default class EpisodeModal extends Component {
         loading: false
     }
 
-    getCharacters = async (characters) => {
+    getCharacters = (characters) => {
         this.setState({ loading: true })
         let newChars = []
         let wait = characters.length;
-        await characters.forEach(character => {
+        characters.forEach(character => {
             Axios.get(`${character}`)
                 .then(res => {
                     let { data } = res;

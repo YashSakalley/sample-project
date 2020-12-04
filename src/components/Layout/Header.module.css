@@ -11,15 +11,3 @@
   font-size: 40px;
   text-align: center;
 }
-
-.filter {
-  display: flex;
-}
-
-.header input,
-.header select,
-.header button,
-.header select option {
-  padding: 10px;
-  margin: 5px;
-}
