@@ -47,7 +47,7 @@ class EpisodeList extends Component {
             })
             .catch(err => {
                 console.log(err);
-                this.setState({ error: 'No episodes found' })
+                this.setState({ error: 'No episodes found', loading: false })
             })
     }
 

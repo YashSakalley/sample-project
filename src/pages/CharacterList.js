@@ -65,7 +65,7 @@ class CharacterList extends Component {
             })
             .catch(err => {
                 console.log(err);
-                this.setState({ error: 'No characters found' })
+                this.setState({ error: 'No characters found', loading: false })
             })
     }
 
